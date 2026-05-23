@@ -15,13 +15,10 @@ public class TopicProficiency {
     @Id @GeneratedValue
     private Long id;
 
-    private double percentage; // 0.0 to 100.0
-
     @TargetNode
     private Topic topic;
 
-    public TopicProficiency(Topic topic, double percentage) {
+    public TopicProficiency(Topic topic) {
         this.topic = topic;
-        this.percentage = percentage;
     }
 }

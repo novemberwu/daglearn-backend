@@ -17,13 +17,14 @@ public interface TopicRepository extends Neo4jRepository<Topic, String> {
     @Query("MATCH (u:User {id: $userId}) " +
            "MATCH (nextTopic:Topic) " +
            "WHERE NOT EXISTS { " +
-           "    MATCH (u)-[r:MASTERED]->(nextTopic) " +
-           "    WHERE r.percentage >= nextTopic.requiredProficiencyScore " +
+           "    MATCH (u)-[:MASTERED]->(nextTopic) " +
            "} " +
            "AND ALL(prereq IN [(nextTopic)-[:REQUIRES]->(p:Topic) | p] WHERE EXISTS { " +
-           "    MATCH (u)-[r:MASTERED]->(prereq) " +
-           "    WHERE r.percentage >= prereq.requiredProficiencyScore " +
+           "    MATCH (u)-[:MASTERED]->(prereq) " +
            "}) " +
            "RETURN nextTopic")
     List<Topic> findUnlockedTopicsForUser(String userId);
+
+    @Query("MATCH (t:Topic)-[:CONTAINS]->(c:Concept {id: $conceptId}) RETURN t")
+    List<Topic> findTopicsByConceptId(String conceptId);
 }

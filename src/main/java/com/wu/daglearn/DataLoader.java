@@ -1,11 +1,9 @@
 package com.wu.daglearn;
 
+import com.wu.daglearn.model.Course;
 import com.wu.daglearn.model.Topic;
 import com.wu.daglearn.model.User;
-import com.wu.daglearn.repository.ConceptRepository;
-import com.wu.daglearn.repository.ResourceRepository;
-import com.wu.daglearn.repository.TopicRepository;
-import com.wu.daglearn.repository.UserRepository;
+import com.wu.daglearn.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -15,15 +13,18 @@ import java.util.Set;
 @Component
 public class DataLoader implements CommandLineRunner {
 
+    private final CourseRepository courseRepository;
     private final TopicRepository topicRepository;
     private final ConceptRepository conceptRepository;
     private final ResourceRepository resourceRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public DataLoader(TopicRepository topicRepository, ConceptRepository conceptRepository, 
+    public DataLoader(CourseRepository courseRepository, TopicRepository topicRepository,
+                      ConceptRepository conceptRepository, 
                       ResourceRepository resourceRepository, UserRepository userRepository,
                       PasswordEncoder passwordEncoder) {
+        this.courseRepository = courseRepository;
         this.topicRepository = topicRepository;
         this.conceptRepository = conceptRepository;
         this.resourceRepository = resourceRepository;
@@ -35,6 +36,7 @@ public class DataLoader implements CommandLineRunner {
     public void run(String... args) throws Exception {
         System.out.println("Initializing AP CSA Knowledge Graph in Neo4j...");
         
+        courseRepository.deleteAll();
         resourceRepository.deleteAll();
         conceptRepository.deleteAll();
         topicRepository.deleteAll();
@@ -61,10 +63,15 @@ public class DataLoader implements CommandLineRunner {
         unit8.getPrerequisites().add(unit6);
         unit9.getPrerequisites().add(unit4);
 
-        // 3. Save to Neo4j
+        // 3. Save Topics
         topicRepository.saveAll(Set.of(unit1, unit2, unit3, unit4, unit5, unit6, unit7, unit8, unit9));
+
+        // 4. Create and Save Course
+        Course apCsa = new Course("AP-CSA", "AP Computer Science A", "Computer Science");
+        apCsa.getTopics().addAll(Set.of(unit1, unit2, unit3, unit4, unit5, unit6, unit7, unit8, unit9));
+        courseRepository.save(apCsa);
         
-        // 4. Create test user "rachel@example.com"
+        // 5. Create test user "rachel@example.com"
         User rachel = new User("rachel@example.com", "Rachel Wu", "rachel@example.com");
         rachel.setPassword(passwordEncoder.encode("password"));
         userRepository.save(rachel);
