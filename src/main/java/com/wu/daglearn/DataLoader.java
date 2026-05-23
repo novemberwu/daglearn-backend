@@ -49,8 +49,7 @@ public class DataLoader implements CommandLineRunner {
         Topic unit6 = createTopic("U6", "Array", "Storing collections of primitive or object data in fixed-size arrays.");
         Topic unit7 = createTopic("U7", "ArrayList", "Using the dynamic ArrayList class for resizable collections.");
         Topic unit8 = createTopic("U8", "2D Array", "Working with nested loops and grid-based data structures.");
-        Topic unit9 = createTopic("U9", "Inheritance", "Subclasses, superclasses, and polymorphism.");
-        Topic unit10 = createTopic("U10", "Recursion", "Solving problems by breaking them into smaller, self-similar sub-problems.");
+        Topic unit9 = createTopic("U9", "Recursion", "Solving problems by breaking them into smaller, self-similar sub-problems.");
 
         // 2. Build the DAG (Prerequisites)
         unit2.getPrerequisites().add(unit1);
@@ -60,11 +59,10 @@ public class DataLoader implements CommandLineRunner {
         unit6.getPrerequisites().add(unit4);
         unit7.getPrerequisites().add(unit6);
         unit8.getPrerequisites().add(unit6);
-        unit9.getPrerequisites().add(unit5);
-        unit10.getPrerequisites().addAll(Set.of(unit4, unit9));
+        unit9.getPrerequisites().add(unit4);
 
         // 3. Save to Neo4j
-        topicRepository.saveAll(Set.of(unit1, unit2, unit3, unit4, unit5, unit6, unit7, unit8, unit9, unit10));
+        topicRepository.saveAll(Set.of(unit1, unit2, unit3, unit4, unit5, unit6, unit7, unit8, unit9));
         
         // 4. Create test user "rachel@example.com"
         User rachel = new User("rachel@example.com", "Rachel Wu", "rachel@example.com");
