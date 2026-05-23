@@ -2,11 +2,14 @@ package com.wu.daglearn.controller;
 
 import com.wu.daglearn.dto.AnswerSubmissionDto;
 import com.wu.daglearn.dto.AttemptResultDto;
+import com.wu.daglearn.dto.ConceptProficiencyDto;
 import com.wu.daglearn.service.ProficiencyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -17,6 +20,12 @@ public class UserController {
 
     public UserController(ProficiencyService proficiencyService) {
         this.proficiencyService = proficiencyService;
+    }
+
+    @GetMapping("/{userId}/proficiencies")
+    @Operation(summary = "Get user proficiencies", description = "Retrieves all concept proficiencies for a specific user.")
+    public ResponseEntity<List<ConceptProficiencyDto>> getUserProficiencies(@PathVariable String userId) {
+        return ResponseEntity.ok(proficiencyService.getUserProficiencies(userId));
     }
 
     @PostMapping("/{userId}/attempts")

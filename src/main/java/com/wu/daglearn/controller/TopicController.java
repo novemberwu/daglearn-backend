@@ -25,6 +25,12 @@ public class TopicController {
         this.topicService = topicService;
     }
 
+    @GetMapping
+    @Operation(summary = "Get all topics", description = "Retrieves all topics in the knowledge graph, including their prerequisite relationships.")
+    public ResponseEntity<List<Topic>> getAllTopics() {
+        return ResponseEntity.ok(topicService.getAllTopics());
+    }
+
     @GetMapping("/{topicId}/mcqs")
     @Operation(summary = "Get MCQs for a topic", description = "Retrieves all multiple-choice questions associated with the specified topic. Correct answers are excluded.")
     public ResponseEntity<List<McqDto>> getMcqsForTopic(

@@ -1,19 +1,15 @@
 package com.wu.daglearn;
 
-import com.wu.daglearn.model.Concept;
-import com.wu.daglearn.model.McqResource;
-import com.wu.daglearn.model.Resource;
 import com.wu.daglearn.model.Topic;
-import com.wu.daglearn.model.TopicProficiency;
 import com.wu.daglearn.model.User;
 import com.wu.daglearn.repository.ConceptRepository;
 import com.wu.daglearn.repository.ResourceRepository;
 import com.wu.daglearn.repository.TopicRepository;
 import com.wu.daglearn.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Set;
 
 @Component
@@ -23,85 +19,65 @@ public class DataLoader implements CommandLineRunner {
     private final ConceptRepository conceptRepository;
     private final ResourceRepository resourceRepository;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public DataLoader(TopicRepository topicRepository, ConceptRepository conceptRepository, 
-                      ResourceRepository resourceRepository, UserRepository userRepository) {
+                      ResourceRepository resourceRepository, UserRepository userRepository,
+                      PasswordEncoder passwordEncoder) {
         this.topicRepository = topicRepository;
         this.conceptRepository = conceptRepository;
         this.resourceRepository = resourceRepository;
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public void run(String... args) throws Exception {
-        System.out.println("Initializing test graph in Neo4j...");
+        System.out.println("Initializing AP CSA Knowledge Graph in Neo4j...");
         
-        // Clear existing test data
         resourceRepository.deleteAll();
         conceptRepository.deleteAll();
         topicRepository.deleteAll();
         userRepository.deleteAll();
 
-        // 1. Create Topics
-        Topic arrays = new Topic("T-1", "Arrays");
-        arrays.setRequiredProficiencyScore(80);
-        arrays.setDescription("Basic linear data structure where elements are stored in contiguous memory locations.");
+        // 1. Create AP CSA Topics (Units 1-10)
+        Topic unit1 = createTopic("U1", "Primitive Types", "Variables, data types, and basic arithmetic expressions.");
+        Topic unit2 = createTopic("U2", "Using Objects", "Creating and calling methods of existing classes.");
+        Topic unit3 = createTopic("U3", "Boolean Expressions & If Statements", "Logic, comparison operators, and conditional branching.");
+        Topic unit4 = createTopic("U4", "Iteration", "While loops and for loops for repetitive tasks.");
+        Topic unit5 = createTopic("U5", "Writing Classes", "Designing classes, constructors, and encapsulation.");
+        Topic unit6 = createTopic("U6", "Array", "Storing collections of primitive or object data in fixed-size arrays.");
+        Topic unit7 = createTopic("U7", "ArrayList", "Using the dynamic ArrayList class for resizable collections.");
+        Topic unit8 = createTopic("U8", "2D Array", "Working with nested loops and grid-based data structures.");
+        Topic unit9 = createTopic("U9", "Inheritance", "Subclasses, superclasses, and polymorphism.");
+        Topic unit10 = createTopic("U10", "Recursion", "Solving problems by breaking them into smaller, self-similar sub-problems.");
 
-        Topic linkedLists = new Topic("T-2", "Linked Lists");
-        linkedLists.setRequiredProficiencyScore(80);
-        linkedLists.setDescription("Linear data structure where elements are stored in nodes connected by pointers.");
+        // 2. Build the DAG (Prerequisites)
+        unit2.getPrerequisites().add(unit1);
+        unit3.getPrerequisites().add(unit1);
+        unit4.getPrerequisites().add(unit3);
+        unit5.getPrerequisites().add(unit2);
+        unit6.getPrerequisites().add(unit4);
+        unit7.getPrerequisites().add(unit6);
+        unit8.getPrerequisites().add(unit6);
+        unit9.getPrerequisites().add(unit5);
+        unit10.getPrerequisites().addAll(Set.of(unit4, unit9));
 
-        Topic trees = new Topic("T-3", "Trees");
-        trees.setRequiredProficiencyScore(80);
-        trees.setDescription("Hierarchical data structure consisting of nodes connected by edges.");
-
-        Topic graphs = new Topic("T-4", "Graphs");
-        graphs.setRequiredProficiencyScore(80);
-        graphs.setDescription("Collection of nodes and edges connecting pairs of nodes.");
-
-        // 2. Create Concepts for Linked Lists
-        Concept nodeStructure = new Concept("C-1", "Node Structure");
-        nodeStructure.setDescription("Understanding the data field and the next pointer.");
+        // 3. Save to Neo4j
+        topicRepository.saveAll(Set.of(unit1, unit2, unit3, unit4, unit5, unit6, unit7, unit8, unit9, unit10));
         
-        Concept traversal = new Concept("C-2", "Traversal");
-        traversal.setDescription("The logic of visiting nodes until reaching null.");
+        // 4. Create test user "rachel@example.com"
+        User rachel = new User("rachel@example.com", "Rachel Wu", "rachel@example.com");
+        rachel.setPassword(passwordEncoder.encode("password"));
+        userRepository.save(rachel);
 
-        // 3. Create Resources (MCQs) for Concepts
-        McqResource mcq1 = new McqResource("R-1", 
-            "What happens if you lose the head pointer?", 
-            List.of("The entire list becomes unreachable (Memory Leak)", "Only the head is lost", "Nothing happens", "The next pointer is updated"),
-            "The entire list becomes unreachable (Memory Leak)");
-        
-        McqResource mcq2 = new McqResource("R-2", 
-            "What is the time complexity to access the i-th element in a Singly Linked List?", 
-            List.of("O(1)", "O(log n)", "O(n)", "O(n^2)"),
-            "O(n)");
+        System.out.println("AP CSA Knowledge Graph saved successfully!");
+    }
 
-        // 4. Build Relationships
-        nodeStructure.getResources().add(mcq1);
-        traversal.getResources().add(mcq2);
-
-        linkedLists.getConcepts().addAll(Set.of(nodeStructure, traversal));
-
-        // Build the DAG (Prerequisites)
-        linkedLists.getPrerequisites().add(arrays);
-        trees.getPrerequisites().addAll(Set.of(arrays, linkedLists));
-        graphs.getPrerequisites().addAll(Set.of(trees, arrays));
-
-        // 5. Save to Neo4j
-        topicRepository.saveAll(Set.of(arrays, linkedLists, trees, graphs));
-        
-        // 6. Create test user "user-1"
-        User user1 = new User("user-1", "Rachel Wu", "rachel@example.com");
-        
-        // Let's say the user has mastered "Arrays" already
-        TopicProficiency arrayProficiency = new TopicProficiency(arrays, 100.0);
-        user1.getTopicProficiencies().add(arrayProficiency);
-        
-        userRepository.save(user1);
-
-        System.out.println("Test graph and user saved successfully!");
-        System.out.println("Structure: Arrays (Mastered), Linked Lists -> Trees -> Graphs");
-        System.out.println("Unlocked for user-1 should be: [Linked Lists] (since Arrays is already mastered and Linked Lists is available)");
+    private Topic createTopic(String id, String title, String description) {
+        Topic topic = new Topic(id, title);
+        topic.setDescription(description);
+        topic.setRequiredProficiencyScore(80);
+        return topic;
     }
 }

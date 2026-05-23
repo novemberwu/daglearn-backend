@@ -1,5 +1,6 @@
 package com.wu.daglearn.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -24,9 +25,11 @@ public class Topic {
 
     // Directed graph: This topic requires the following topics to be learned first
     @Relationship(type = "REQUIRES", direction = Relationship.Direction.OUTGOING)
+    @JsonIgnoreProperties({"prerequisites", "concepts"})
     private Set<Topic> prerequisites = new HashSet<>();
 
     @Relationship(type = "CONTAINS", direction = Relationship.Direction.OUTGOING)
+    @JsonIgnoreProperties("topic")
     private Set<Concept> concepts = new HashSet<>();
     
     public Topic(String id, String title) {

@@ -2,6 +2,7 @@ package com.wu.daglearn.service;
 
 import com.wu.daglearn.dto.AnswerSubmissionDto;
 import com.wu.daglearn.dto.AttemptResultDto;
+import com.wu.daglearn.dto.ConceptProficiencyDto;
 import com.wu.daglearn.model.*;
 import com.wu.daglearn.repository.*;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProficiencyService {
@@ -23,6 +25,19 @@ public class ProficiencyService {
         this.userRepository = userRepository;
         this.mcqResourceRepository = mcqResourceRepository;
         this.conceptRepository = conceptRepository;
+    }
+
+    public List<ConceptProficiencyDto> getUserProficiencies(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+
+        return user.getProficiencies().stream()
+                .map(p -> new ConceptProficiencyDto(
+                        p.getConcept().getId(),
+                        p.getConcept().getName(),
+                        p.getPercentage()
+                ))
+                .collect(Collectors.toList());
     }
 
     @Transactional

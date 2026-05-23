@@ -18,6 +18,7 @@ public class User {
     private String id; // e.g., email or unique username
     private String username;
     private String email;
+    private String password;
 
     @Relationship(type = "ATTEMPTED")
     private List<ResourceAttempt> attempts = new ArrayList<>();

@@ -21,6 +21,10 @@ public class TopicService {
         this.topicRepository = topicRepository;
     }
 
+    public List<Topic> getAllTopics() {
+        return topicRepository.findAll();
+    }
+
     public List<Topic> getUnlockedTopicsForUser(String userId) {
         return topicRepository.findUnlockedTopicsForUser(userId);
     }
