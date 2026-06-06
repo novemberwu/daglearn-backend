@@ -30,6 +30,15 @@ class DaglearnApplicationTests {
     @Value("${app.security.cors.allowed-origins}")
     private String allowedOrigins;
 
+    @Value("${app.security.jwt.private-key-pem}")
+    private String privateKeyPem;
+
+    @Value("${app.security.jwt.public-key-pem}")
+    private String publicKeyPem;
+
+    @Value("${app.security.jwt.key-id}")
+    private String keyId;
+
     @Test
     void contextLoads() {
     }
@@ -46,5 +55,8 @@ class DaglearnApplicationTests {
         assertEquals("http://localhost:3000/", postLogoutRedirectUri);
         assertEquals("http://localhost:8080", jwtIssuer);
         assertEquals("http://localhost:3000", allowedOrigins);
+        assertEquals("", privateKeyPem);
+        assertEquals("", publicKeyPem);
+        assertEquals("daglearn-jwt-key", keyId);
     }
 }
