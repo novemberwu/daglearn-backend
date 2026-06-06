@@ -4,6 +4,8 @@ import com.wu.daglearn.model.Course;
 import com.wu.daglearn.model.Topic;
 import com.wu.daglearn.model.User;
 import com.wu.daglearn.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -12,6 +14,8 @@ import java.util.Set;
 
 @Component
 public class DataLoader implements CommandLineRunner {
+
+    private static final Logger log = LoggerFactory.getLogger(DataLoader.class);
 
     private final CourseRepository courseRepository;
     private final TopicRepository topicRepository;
@@ -34,7 +38,7 @@ public class DataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        System.out.println("Initializing AP CSA Knowledge Graph in Neo4j...");
+        log.info("Initializing AP CSA Knowledge Graph in Neo4j...");
         
         courseRepository.deleteAll();
         resourceRepository.deleteAll();
@@ -76,7 +80,7 @@ public class DataLoader implements CommandLineRunner {
         rachel.setPassword(passwordEncoder.encode("password"));
         userRepository.save(rachel);
 
-        System.out.println("AP CSA Knowledge Graph saved successfully!");
+        log.info("AP CSA Knowledge Graph saved successfully!");
     }
 
     private Topic createTopic(String id, String title, String description) {
