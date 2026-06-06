@@ -37,5 +37,4 @@ out/
 .vscode/
 
 # Local Environment Variables
-.env
-.env_local
+.env*
