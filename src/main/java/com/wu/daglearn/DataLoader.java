@@ -4,6 +4,7 @@ import com.wu.daglearn.model.Course;
 import com.wu.daglearn.model.Topic;
 import com.wu.daglearn.model.User;
 import com.wu.daglearn.repository.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,9 @@ import java.util.Set;
 
 @Component
 public class DataLoader implements CommandLineRunner {
+
+    @Value("${app.database.force-reseed:false}")
+    private boolean forceReseed;
 
     private final CourseRepository courseRepository;
     private final TopicRepository topicRepository;
@@ -34,13 +38,21 @@ public class DataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        if (!forceReseed && courseRepository.count() > 0) {
+            System.out.println("AP CSA Knowledge Graph already exists in Neo4j. Skipping database seeding to prevent destructive overwrites.");
+            return;
+        }
+
         System.out.println("Initializing AP CSA Knowledge Graph in Neo4j...");
         
-        courseRepository.deleteAll();
-        resourceRepository.deleteAll();
-        conceptRepository.deleteAll();
-        topicRepository.deleteAll();
-        userRepository.deleteAll();
+        if (forceReseed) {
+            System.out.println("FORCE_RESEED is enabled. Wiping the database before seeding...");
+            courseRepository.deleteAll();
+            resourceRepository.deleteAll();
+            conceptRepository.deleteAll();
+            topicRepository.deleteAll();
+            userRepository.deleteAll();
+        }
 
         // 1. Create AP CSA Topics (Units 1-10)
         Topic unit1 = createTopic("U1", "Primitive Types", "Variables, data types, and basic arithmetic expressions.");
