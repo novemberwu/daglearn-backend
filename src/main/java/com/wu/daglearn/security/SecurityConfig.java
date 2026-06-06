@@ -5,6 +5,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -42,6 +43,18 @@ import java.util.UUID;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    @Value("${app.security.oauth2.client-id}")
+    private String clientId;
+
+    @Value("${app.security.oauth2.client-secret}")
+    private String clientSecret;
+
+    @Value("${app.security.oauth2.redirect-uri}")
+    private String redirectUri;
+
+    @Value("${app.security.oauth2.post-logout-redirect-uri}")
+    private String postLogoutRedirectUri;
 
     @Bean
     @Order(1)
@@ -83,14 +96,19 @@ public class SecurityConfig {
 
     @Bean
     public RegisteredClientRepository registeredClientRepository() {
+        String secret = clientSecret;
+        if (secret != null && !secret.startsWith("{")) {
+            secret = "{noop}" + secret;
+        }
+
         RegisteredClient nextJsClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId("next-client")
-                .clientSecret("{noop}secret")
+                .clientId(clientId)
+                .clientSecret(secret)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .redirectUri("http://localhost:3000/api/auth/callback/next-learn")
-                .postLogoutRedirectUri("http://localhost:3000/")
+                .redirectUri(redirectUri)
+                .postLogoutRedirectUri(postLogoutRedirectUri)
                 .scope(OidcScopes.OPENID)
                 .scope(OidcScopes.PROFILE)
                 .scope("topic:read")

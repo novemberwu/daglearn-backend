@@ -9,6 +9,7 @@ import com.wu.daglearn.repository.ConceptRepository;
 import com.wu.daglearn.repository.ResourceRepository;
 import com.wu.daglearn.repository.TopicRepository;
 import com.wu.daglearn.repository.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,6 +34,42 @@ class KnowledgeGraphRepositoryTests {
 
     @Autowired
     private UserRepository userRepository;
+
+    @BeforeEach
+    void setUp() {
+        userRepository.deleteAll();
+        resourceRepository.deleteAll();
+        conceptRepository.deleteAll();
+        topicRepository.deleteAll();
+
+        // 1. Create Topics
+        Topic arrays = new Topic("T-1", "Arrays");
+        arrays.setDescription("Contiguous memory collection of elements.");
+
+        Topic linkedLists = new Topic("T-2", "Linked Lists");
+        linkedLists.setDescription("Linear collection of data elements whose order is not given by their physical placement in memory.");
+        linkedLists.setRequiredProficiencyScore(80);
+
+        // 2. Create Concept
+        Concept nodeStructure = new Concept("C-1", "Node Structure");
+        nodeStructure.setDescription("Understanding the data field and the next pointer.");
+
+        // 3. Create Resource
+        McqResource mcq1 = new McqResource("R-1", "What happens if you lose the head pointer?",
+                List.of("The entire list becomes unreachable (Memory Leak)", "Only the head is lost", "Nothing happens", "The next pointer is updated"),
+                "The entire list becomes unreachable (Memory Leak)");
+        mcq1.setType("MCQ");
+
+        // 4. Build Relationships
+        nodeStructure.getResources().add(mcq1);
+        linkedLists.getConcepts().add(nodeStructure);
+        linkedLists.getPrerequisites().add(arrays);
+
+        // 5. Save all
+        resourceRepository.save(mcq1);
+        conceptRepository.save(nodeStructure);
+        topicRepository.saveAll(Set.of(arrays, linkedLists));
+    }
 
     @Test
     void testLinkedListTopicRetrieval() {
