@@ -1,10 +1,13 @@
 package com.wu.daglearn.config;
 
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -13,7 +16,18 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 public class LoggingConfigTests {
+
+    @BeforeAll
+    static void setup() {
+        System.setProperty("spring.profiles.active", "prod");
+    }
+
+    @AfterAll
+    static void teardown() {
+        System.clearProperty("spring.profiles.active");
+    }
 
     private static final Logger log = LoggerFactory.getLogger(LoggingConfigTests.class);
 
