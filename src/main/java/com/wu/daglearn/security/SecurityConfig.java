@@ -35,6 +35,10 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.KeyFactory;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
@@ -55,6 +59,15 @@ public class SecurityConfig {
 
     @Value("${app.security.oauth2.post-logout-redirect-uri}")
     private String postLogoutRedirectUri;
+
+    @Value("${app.security.jwt.private-key-pem}")
+    private String privateKeyPem;
+
+    @Value("${app.security.jwt.public-key-pem}")
+    private String publicKeyPem;
+
+    @Value("${app.security.jwt.key-id}")
+    private String keyId;
 
     @Bean
     @Order(1)
@@ -123,15 +136,57 @@ public class SecurityConfig {
 
     @Bean
     public JWKSource<SecurityContext> jwkSource() {
-        KeyPair keyPair = generateRsaKey();
-        RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
-        RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
-        RSAKey rsaKey = new RSAKey.Builder(publicKey)
-                .privateKey(privateKey)
-                .keyID(UUID.randomUUID().toString())
-                .build();
+        RSAKey rsaKey = null;
+
+        if (privateKeyPem != null && !privateKeyPem.trim().isEmpty() &&
+                publicKeyPem != null && !publicKeyPem.trim().isEmpty()) {
+            try {
+                RSAPublicKey publicKey = parsePublicKey(publicKeyPem);
+                RSAPrivateKey privateKey = parsePrivateKey(privateKeyPem);
+                rsaKey = new RSAKey.Builder(publicKey)
+                        .privateKey(privateKey)
+                        .keyID(keyId != null && !keyId.trim().isEmpty() ? keyId : "daglearn-jwt-key")
+                        .build();
+                System.out.println("Using persistent RSA keys from environment variables with Key ID: " + rsaKey.getKeyID());
+            } catch (Exception e) {
+                System.err.println("Error parsing persistent RSA keys from environment variables: " + e.getMessage());
+                System.err.println("Falling back to auto-generated in-memory RSA key...");
+            }
+        }
+
+        if (rsaKey == null) {
+            KeyPair keyPair = generateRsaKey();
+            RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
+            RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
+            rsaKey = new RSAKey.Builder(publicKey)
+                    .privateKey(privateKey)
+                    .keyID(UUID.randomUUID().toString())
+                    .build();
+            System.out.println("Using auto-generated in-memory RSA key with Key ID: " + rsaKey.getKeyID());
+        }
+
         JWKSet jwkSet = new JWKSet(rsaKey);
         return new ImmutableJWKSet<>(jwkSet);
+    }
+
+    private static RSAPublicKey parsePublicKey(String pem) throws Exception {
+        String cleanPem = pem.replace("-----BEGIN PUBLIC KEY-----", "")
+                             .replace("-----END PUBLIC KEY-----", "")
+                             .replaceAll("\\s+", "");
+        byte[] decoded = Base64.getDecoder().decode(cleanPem);
+        X509EncodedKeySpec spec = new X509EncodedKeySpec(decoded);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        return (RSAPublicKey) kf.generatePublic(spec);
+    }
+
+    private static RSAPrivateKey parsePrivateKey(String pem) throws Exception {
+        String cleanPem = pem.replace("-----BEGIN PRIVATE KEY-----", "")
+                             .replace("-----END PRIVATE KEY-----", "")
+                             .replaceAll("\\s+", "");
+        byte[] decoded = Base64.getDecoder().decode(cleanPem);
+        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(decoded);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        return (RSAPrivateKey) kf.generatePrivate(spec);
     }
 
     private static KeyPair generateRsaKey() {
