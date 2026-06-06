@@ -33,6 +33,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyFactory;
@@ -47,6 +49,8 @@ import java.util.UUID;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
 
     @Value("${app.security.oauth2.client-id}")
     private String clientId;
@@ -147,10 +151,10 @@ public class SecurityConfig {
                         .privateKey(privateKey)
                         .keyID(keyId != null && !keyId.trim().isEmpty() ? keyId : "daglearn-jwt-key")
                         .build();
-                System.out.println("Using persistent RSA keys from environment variables with Key ID: " + rsaKey.getKeyID());
+                log.info("Using persistent RSA keys from environment variables with Key ID: {}", rsaKey.getKeyID());
             } catch (Exception e) {
-                System.err.println("Error parsing persistent RSA keys from environment variables: " + e.getMessage());
-                System.err.println("Falling back to auto-generated in-memory RSA key...");
+                log.error("Error parsing persistent RSA keys from environment variables: {}", e.getMessage(), e);
+                log.error("Falling back to auto-generated in-memory RSA key...");
             }
         }
 
@@ -162,7 +166,7 @@ public class SecurityConfig {
                     .privateKey(privateKey)
                     .keyID(UUID.randomUUID().toString())
                     .build();
-            System.out.println("Using auto-generated in-memory RSA key with Key ID: " + rsaKey.getKeyID());
+            log.info("Using auto-generated in-memory RSA key with Key ID: {}", rsaKey.getKeyID());
         }
 
         JWKSet jwkSet = new JWKSet(rsaKey);

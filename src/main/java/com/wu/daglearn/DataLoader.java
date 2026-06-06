@@ -4,6 +4,8 @@ import com.wu.daglearn.model.Course;
 import com.wu.daglearn.model.Topic;
 import com.wu.daglearn.model.User;
 import com.wu.daglearn.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,6 +15,8 @@ import java.util.Set;
 
 @Component
 public class DataLoader implements CommandLineRunner {
+
+    private static final Logger log = LoggerFactory.getLogger(DataLoader.class);
 
     @Value("${app.database.force-reseed:false}")
     private boolean forceReseed;
@@ -39,14 +43,14 @@ public class DataLoader implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         if (!forceReseed && courseRepository.count() > 0) {
-            System.out.println("AP CSA Knowledge Graph already exists in Neo4j. Skipping database seeding to prevent destructive overwrites.");
+            log.info("AP CSA Knowledge Graph already exists in Neo4j. Skipping database seeding to prevent destructive overwrites.");
             return;
         }
 
-        System.out.println("Initializing AP CSA Knowledge Graph in Neo4j...");
+        log.info("Initializing AP CSA Knowledge Graph in Neo4j...");
         
         if (forceReseed) {
-            System.out.println("FORCE_RESEED is enabled. Wiping the database before seeding...");
+            log.info("FORCE_RESEED is enabled. Wiping the database before seeding...");
             courseRepository.deleteAll();
             resourceRepository.deleteAll();
             conceptRepository.deleteAll();
@@ -88,7 +92,7 @@ public class DataLoader implements CommandLineRunner {
         rachel.setPassword(passwordEncoder.encode("password"));
         userRepository.save(rachel);
 
-        System.out.println("AP CSA Knowledge Graph saved successfully!");
+        log.info("AP CSA Knowledge Graph saved successfully!");
     }
 
     private Topic createTopic(String id, String title, String description) {
