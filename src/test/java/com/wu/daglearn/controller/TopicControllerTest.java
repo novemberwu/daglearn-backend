@@ -59,10 +59,12 @@ class TopicControllerTest {
 
         Concept llConcept = new Concept("C-LL", "LL Concept");
         McqResource llMcq = new McqResource("R-LL", "LL Q", List.of("A", "B"), "A");
+        DocumentResource llDoc = new DocumentResource("R-LL-DOC", "LL Document content");
         llConcept.getResources().add(llMcq);
+        llConcept.getResources().add(llDoc);
         linkedLists.getConcepts().add(llConcept);
 
-        resourceRepository.saveAll(List.of(arrayMcq, llMcq));
+        resourceRepository.saveAll(List.of(arrayMcq, llMcq, llDoc));
         conceptRepository.saveAll(List.of(arrayConcept, llConcept));
         topicRepository.saveAll(Set.of(arrays, linkedLists));
     }
@@ -92,5 +94,39 @@ class TopicControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].id", is("T-2")));
+    }
+
+    @Test
+    void shouldReturnConceptsForTopic() throws Exception {
+        // Given & When & Then
+        mockMvc.perform(get("/api/topics/T-2/concepts")
+                .with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_topic:read"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id", is("C-LL")))
+                .andExpect(jsonPath("$[0].name", is("LL Concept")));
+    }
+
+    @Test
+    void shouldReturnMcqsForConcept() throws Exception {
+        // Given & When & Then
+        mockMvc.perform(get("/api/topics/concepts/C-LL/mcqs")
+                .with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_topic:read"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id", is("R-LL")))
+                .andExpect(jsonPath("$[0].content", is("LL Q")))
+                .andExpect(jsonPath("$[0].correctAnswer", is("A")));
+    }
+
+    @Test
+    void shouldReturnDocumentsForConcept() throws Exception {
+        // Given & When & Then
+        mockMvc.perform(get("/api/topics/concepts/C-LL/documents")
+                .with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_topic:read"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id", is("R-LL-DOC")))
+                .andExpect(jsonPath("$[0].content", is("LL Document content")));
     }
 }

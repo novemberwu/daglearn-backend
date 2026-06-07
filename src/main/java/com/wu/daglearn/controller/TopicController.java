@@ -1,6 +1,9 @@
 package com.wu.daglearn.controller;
 
 import com.wu.daglearn.dto.McqDto;
+import com.wu.daglearn.model.Concept;
+import com.wu.daglearn.model.DocumentResource;
+import com.wu.daglearn.model.McqResource;
 import com.wu.daglearn.model.Topic;
 import com.wu.daglearn.service.TopicService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,5 +46,26 @@ public class TopicController {
     @Operation(summary = "Get unlocked topics for user", description = "Retrieves topics that the user is ready to learn (all prerequisites mastered).")
     public ResponseEntity<List<Topic>> getUnlockedTopics(@PathVariable String userId) {
         return ResponseEntity.ok(topicService.getUnlockedTopicsForUser(userId));
+    }
+
+    @GetMapping("/{topicId}/concepts")
+    @Operation(summary = "Get concepts for a topic", description = "Retrieves all concepts associated with the specified topic.")
+    public ResponseEntity<List<Concept>> getConceptsByTopicId(
+            @Parameter(description = "The ID of the topic") @PathVariable String topicId) {
+        return ResponseEntity.ok(topicService.getConceptsByTopicId(topicId));
+    }
+
+    @GetMapping("/concepts/{conceptId}/mcqs")
+    @Operation(summary = "Get MCQs for a concept", description = "Retrieves all multiple-choice questions associated with the specified concept.")
+    public ResponseEntity<List<McqResource>> getMcqByConceptId(
+            @Parameter(description = "The ID of the concept") @PathVariable String conceptId) {
+        return ResponseEntity.ok(topicService.getMcqResourcesByConceptId(conceptId));
+    }
+
+    @GetMapping("/concepts/{conceptId}/documents")
+    @Operation(summary = "Get documents for a concept", description = "Retrieves all document resources associated with the specified concept.")
+    public ResponseEntity<List<DocumentResource>> getDocumentByConceptId(
+            @Parameter(description = "The ID of the concept") @PathVariable String conceptId) {
+        return ResponseEntity.ok(topicService.getDocumentResourcesByConceptId(conceptId));
     }
 }
