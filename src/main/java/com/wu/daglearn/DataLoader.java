@@ -2,6 +2,8 @@ package com.wu.daglearn;
 
 import com.wu.daglearn.model.*;
 import com.wu.daglearn.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.ClassPathResource;
@@ -16,6 +18,8 @@ import java.util.Set;
 
 @Component
 public class DataLoader implements CommandLineRunner {
+
+    private static final Logger log = LoggerFactory.getLogger(DataLoader.class);
 
     @Value("${app.database.force-reseed:false}")
     private boolean forceReseed;
@@ -42,14 +46,14 @@ public class DataLoader implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         if (!forceReseed && courseRepository.count() > 0) {
-            System.out.println("AP CSA Knowledge Graph already exists in Neo4j. Skipping database seeding to prevent destructive overwrites.");
+            log.info("AP CSA Knowledge Graph already exists in Neo4j. Skipping database seeding to prevent destructive overwrites.");
             return;
         }
 
-        System.out.println("Initializing AP CSA Knowledge Graph in Neo4j...");
+        log.info("Initializing AP CSA Knowledge Graph in Neo4j...");
         
         if (forceReseed) {
-            System.out.println("FORCE_RESEED is enabled. Wiping the database before seeding...");
+            log.info("FORCE_RESEED is enabled. Wiping the database before seeding...");
             courseRepository.deleteAll();
             resourceRepository.deleteAll();
             conceptRepository.deleteAll();
@@ -94,7 +98,7 @@ public class DataLoader implements CommandLineRunner {
         // 6. Seed Unit 1 detailed Concepts and Resources (New CSA Content)
         seedCsaUnit1Content();
 
-        System.out.println("AP CSA Knowledge Graph saved successfully!");
+        log.info("AP CSA Knowledge Graph saved successfully!");
     }
 
     private Topic createTopic(String id, String title, String description) {
@@ -105,7 +109,7 @@ public class DataLoader implements CommandLineRunner {
     }
 
     private void seedCsaUnit1Content() {
-        System.out.println("Seeding AP CSA Unit 1 (Primitive Types) Concepts and Resources...");
+        log.info("Seeding AP CSA Unit 1 (Primitive Types) Concepts and Resources...");
 
         // 1. Retrieve the existing U1 Topic
         Topic unit1 = topicRepository.findById("U1").orElseThrow(() -> 
@@ -177,7 +181,7 @@ public class DataLoader implements CommandLineRunner {
         unit1.getConcepts().addAll(conceptsToSave);
         topicRepository.save(unit1);
 
-        System.out.println("AP CSA Unit 1 detailed content seeded successfully!");
+        log.info("AP CSA Unit 1 detailed content seeded successfully!");
     }
 
     private String readResourceFile(String path) {

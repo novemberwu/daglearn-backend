@@ -4,6 +4,8 @@ import com.wu.daglearn.model.User;
 import com.wu.daglearn.repository.UserRepository;
 import com.wu.daglearn.security.dto.AuthResponse;
 import com.wu.daglearn.security.dto.LoginRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,6 +27,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/auth")
 public class AuthController {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+
     private final JwtEncoder encoder;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -40,7 +44,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        System.out.println("Login attempt for email: " + loginRequest.getEmail());
+        log.info("Login attempt for email: {}", loginRequest.getEmail());
         
         // Try to find by ID (which we set as email in DataLoader)
         User user = userRepository.findById(loginRequest.getEmail())
@@ -55,16 +59,16 @@ public class AuthController {
         }
 
         if (user == null) {
-            System.out.println("User not found: " + loginRequest.getEmail());
+            log.info("User not found: {}", loginRequest.getEmail());
             return ResponseEntity.status(401).body(java.util.Map.of("error", "Invalid credentials"));
         }
 
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-            System.out.println("Password mismatch for user: " + loginRequest.getEmail());
+            log.info("Password mismatch for user: {}", loginRequest.getEmail());
             return ResponseEntity.status(401).body(java.util.Map.of("error", "Invalid credentials"));
         }
 
-        System.out.println("Login successful for user: " + loginRequest.getEmail());
+        log.info("Login successful for user: {}", loginRequest.getEmail());
         Instant now = Instant.now();
         long expiry = 3600L; // 1 hour
 
