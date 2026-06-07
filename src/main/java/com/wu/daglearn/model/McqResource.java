@@ -16,10 +16,18 @@ public class McqResource extends Resource {
 
     private List<String> options = new ArrayList<>();
     private String correctAnswer;
+    private String explanation;
 
     public McqResource(String id, String content, List<String> options, String correctAnswer) {
         super(id, "MCQ", content);
         this.options = options;
         this.correctAnswer = correctAnswer;
+    }
+
+    public McqResource(String id, String content, List<String> options, String correctAnswer, String explanation) {
+        super(id, "MCQ", content);
+        this.options = options;
+        this.correctAnswer = correctAnswer;
+        this.explanation = explanation;
     }
 }
