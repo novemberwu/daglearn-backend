@@ -12,4 +12,7 @@ public interface McqResourceRepository extends Neo4jRepository<McqResource, Stri
 
     @Query("MATCH (t:Topic {id: $topicId})-[:CONTAINS]->(c:Concept)-[:ASSESSED_BY]->(r:MCQ) RETURN r")
     List<McqResource> findAllByTopicId(String topicId);
+
+    @Query("MATCH (c:Concept {id: $conceptId})-[:ASSESSED_BY]->(r:MCQ) RETURN r")
+    List<McqResource> findByConceptId(String conceptId);
 }

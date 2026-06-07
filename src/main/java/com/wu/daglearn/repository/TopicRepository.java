@@ -1,11 +1,13 @@
 package com.wu.daglearn.repository;
 
+import com.wu.daglearn.model.Concept;
 import com.wu.daglearn.model.Topic;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TopicRepository extends Neo4jRepository<Topic, String> {
@@ -27,4 +29,6 @@ public interface TopicRepository extends Neo4jRepository<Topic, String> {
 
     @Query("MATCH (t:Topic)-[:CONTAINS]->(c:Concept {id: $conceptId}) RETURN t")
     List<Topic> findTopicsByConceptId(String conceptId);
+
+    Optional<Topic> findTopicById(String id);
 }

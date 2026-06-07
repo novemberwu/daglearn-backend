@@ -5,6 +5,7 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -12,4 +13,7 @@ public interface ConceptRepository extends Neo4jRepository<Concept, String> {
 
     @Query("MATCH (c:Concept)-[:ASSESSED_BY]->(r:Resource {id: $resourceId}) RETURN c")
     Optional<Concept> findByResourceId(String resourceId);
+
+    @Query("MATCH (t:Topic {id: $topicId})-[:CONTAINS]->(c:Concept) RETURN c")
+    List<Concept> findConceptsByTopicId(String topicId);
 }
